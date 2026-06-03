@@ -23,6 +23,12 @@ const Home = () => {
           >
             🪙 虚拟货币
           </Link>
+          <Link
+            to="/news"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium shadow-sm"
+          >
+            📰 最新新闻
+          </Link>
         </div>
       </div>
     </div>

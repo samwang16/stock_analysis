@@ -282,6 +282,49 @@ app.get('/api/cryptos/:id/analysis', async (req, res) => {
   }
 });
 
+// Finlight API 获取最新新闻
+const FINLIGHT_API_KEY = process.env.FINLIGHT_API_KEY || 'sk_709bfe1241f46918ed2899805c5c9e7f41d3190d7ec010a98609b4e1c1bc04dc';
+const FINLIGHT_API_URL = process.env.FINLIGHT_API_URL || 'https://api.finlight.me/v2/articles';
+
+app.get('/api/news', async (req, res) => {
+  try {
+    if (!FINLIGHT_API_KEY) {
+      return res.status(500).json({ message: 'Finlight API key is not configured. Please set FINLIGHT_API_KEY environment variable.' });
+    }
+
+    const { keyword, limit = '20', page = '1' } = req.query;
+    const body = {
+      pageSize: Math.min(parseInt(limit), 50).toString(),
+      page,
+      language: "zh"
+    };
+    if (keyword) {
+      body.query = keyword;
+    }
+
+    const response = await fetch(FINLIGHT_API_URL, {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': FINLIGHT_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Finlight API error: ${response.status} ${errorText}`);
+      return res.status(response.status).json({ message: 'Failed to fetch news from Finlight API' });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    res.status(500).json({ message: 'Error fetching news' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

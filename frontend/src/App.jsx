@@ -5,6 +5,7 @@ import StockList from './components/StockList';
 import StockDetail from './components/StockDetail';
 import CryptoList from './components/CryptoList';
 import CryptoDetail from './components/CryptoDetail';
+import NewsList from './components/NewsList';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -32,6 +33,7 @@ function Navigation() {
   const location = useLocation();
   const isStocks = location.pathname.startsWith('/stock');
   const isCrypto = location.pathname.startsWith('/crypto');
+  const isNews = location.pathname.startsWith('/news');
 
   return (
     <div className="flex items-center gap-3">
@@ -55,6 +57,16 @@ function Navigation() {
           }`}
         >
           🪙 虚拟货币
+        </Link>
+        <Link
+          to="/news"
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            isNews
+              ? 'bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          📰 新闻
         </Link>
       </div>
       <ThemeToggle />
@@ -82,6 +94,7 @@ function App() {
               <Route path="/stock/:id" element={<StockDetail />} />
               <Route path="/crypto" element={<CryptoList />} />
               <Route path="/crypto/:id" element={<CryptoDetail />} />
+              <Route path="/news" element={<NewsList />} />
             </Routes>
           </main>
         </div>

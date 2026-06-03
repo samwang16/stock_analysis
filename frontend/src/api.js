@@ -37,3 +37,12 @@ export const getCryptoAnalysis = async (id) => {
   const response = await axios.get(`${API_BASE_URL}/cryptos/${id}/analysis`);
   return response.data;
 };
+
+export const getNews = async (keyword = '', limit = 20, page = 1) => {
+  const params = { limit, page };
+  if (keyword.trim()) {
+    params.keyword = keyword.trim();
+  }
+  const response = await axios.get(`${API_BASE_URL}/news`, { params });
+  return response.data;
+};
