@@ -3,10 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getStocks } from '../api';
 
 const marketOptions = [
-  { value: '', label: '美股' },
-  { value: '.HK', label: '港股' },
-  { value: '.SS', label: '沪市' },
-  { value: '.SZ', label: '深市' }
+  { value: '', label: 'US' },
+  { value: '.HK', label: 'HK' },
+  { value: '.SS', label: 'SS' },
+  { value: '.SZ', label: 'SZ' }
 ];
 
 const StockList = () => {
@@ -86,7 +86,7 @@ const StockList = () => {
             type="submit"
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
           >
-            查询
+            Search
           </button>
         </form>
       </div>

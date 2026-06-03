@@ -72,14 +72,14 @@ const NewsList = () => {
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="搜索关键词..."
+            placeholder="Search news by keyword..."
             className="flex-1 sm:flex-none border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="submit"
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
           >
-            搜索
+            Search
           </button>
         </form>
       </div>

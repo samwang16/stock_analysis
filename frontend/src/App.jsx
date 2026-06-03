@@ -46,7 +46,7 @@ function Navigation() {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
-          📈 股票
+          📈 Stock
         </Link>
         <Link
           to="/crypto"
@@ -56,7 +56,7 @@ function Navigation() {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
-          🪙 虚拟货币
+          🪙 Crypto
         </Link>
         <Link
           to="/news"
@@ -66,7 +66,7 @@ function Navigation() {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
-          📰 新闻
+          📰 News
         </Link>
       </div>
       <ThemeToggle />
