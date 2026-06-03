@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import ReactApexChart from 'react-apexcharts';
 import { getCryptoKLine, getCryptoAnalysis } from '../api';
 
@@ -17,6 +18,8 @@ const intervalOptions = [
 const CryptoDetail = () => {
   const [selectedInterval, setSelectedInterval] = useState('1d');
   const { id } = useParams();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [klineData, setKlineData] = useState([]);
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,19 +64,43 @@ const CryptoDetail = () => {
   const chartOptions = {
     chart: {
       type: 'candlestick',
-      height: 400
+      height: 400,
+      background: 'transparent',
+      foreColor: isDark ? '#d1d5db' : '#374151'
     },
     title: {
       text: `${analysis?.name} (${id}) 历史趋势`,
-      align: 'left'
+      align: 'left',
+      style: {
+        color: isDark ? '#f3f4f6' : '#1f2937'
+      }
     },
     xaxis: {
-      type: 'datetime'
+      type: 'datetime',
+      labels: {
+        style: {
+          colors: isDark ? '#9ca3af' : '#6b7280'
+        }
+      },
+      axisBorder: {
+        color: isDark ? '#4b5563' : '#e5e7eb'
+      },
+      axisTicks: {
+        color: isDark ? '#4b5563' : '#e5e7eb'
+      }
     },
     yaxis: {
+      labels: {
+        style: {
+          colors: isDark ? '#9ca3af' : '#6b7280'
+        }
+      },
       tooltip: {
         enabled: true
       }
+    },
+    grid: {
+      borderColor: isDark ? '#374151' : '#f3f4f6'
     },
     plotOptions: {
       candlestick: {
@@ -82,6 +109,9 @@ const CryptoDetail = () => {
           downward: '#22c55e'
         }
       }
+    },
+    tooltip: {
+      theme: isDark ? 'dark' : 'light'
     }
   };
 
@@ -97,7 +127,7 @@ const CryptoDetail = () => {
     <div className="max-w-5xl mx-auto p-4">
       {analysis && (
         <div className="mb-8 flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{analysis.name} ({analysis.cryptoId})</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">{analysis.name} ({analysis.cryptoId})</h1>
           <button
             onClick={toggleFavorite}
             className="focus:outline-none transition-transform hover:scale-110 mb-2"
@@ -116,12 +146,12 @@ const CryptoDetail = () => {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
         <div className="flex justify-end mb-4">
           <select 
             value={selectedInterval}
             onChange={(e) => setSelectedInterval(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200"
           >
             {intervalOptions.map(option => (
               <option key={option.value} value={option.value}>
@@ -139,28 +169,28 @@ const CryptoDetail = () => {
       </div>
 
       {analysis && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">近期交易分析</h2>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">近期交易分析</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-gray-500 text-sm mb-1">综合摘要</p>
-              <p className="font-medium text-gray-800">{analysis.summary}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">综合摘要</p>
+              <p className="font-medium text-gray-800 dark:text-gray-200">{analysis.summary}</p>
             </div>
             <div>
-              <p className="text-gray-500 text-sm mb-1">近期趋势</p>
-              <p className="font-medium text-gray-800">{analysis.trend}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">近期趋势</p>
+              <p className="font-medium text-gray-800 dark:text-gray-200">{analysis.trend}</p>
             </div>
             <div>
-              <p className="text-gray-500 text-sm mb-1">支撑位</p>
-              <p className="font-medium text-gray-800">${analysis.supportLevel}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">支撑位</p>
+              <p className="font-medium text-gray-800 dark:text-gray-200">${analysis.supportLevel}</p>
             </div>
             <div>
-              <p className="text-gray-500 text-sm mb-1">阻力位</p>
-              <p className="font-medium text-gray-800">${analysis.resistanceLevel}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">阻力位</p>
+              <p className="font-medium text-gray-800 dark:text-gray-200">${analysis.resistanceLevel}</p>
             </div>
             <div className="md:col-span-2">
-              <p className="text-gray-500 text-sm mb-1">操作建议</p>
-              <p className="font-bold text-lg text-orange-600">{analysis.recommendation}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">操作建议</p>
+              <p className="font-bold text-lg text-orange-600 dark:text-orange-400">{analysis.recommendation}</p>
             </div>
           </div>
         </div>
