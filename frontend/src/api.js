@@ -20,6 +20,11 @@ export const getStockAnalysis = async (id) => {
   return response.data;
 };
 
+export const getStockQuant = async (id) => {
+  const response = await axios.get(`${API_BASE_URL}/stocks/${id}/quant`);
+  return response.data;
+};
+
 export const getCryptos = async (symbols = []) => {
   const params = symbols.length > 0 ? { symbols: symbols.join(',') } : {};
   const response = await axios.get(`${API_BASE_URL}/cryptos`, { params });
@@ -35,6 +40,11 @@ export const getCryptoKLine = async (id, interval = '1d') => {
 
 export const getCryptoAnalysis = async (id) => {
   const response = await axios.get(`${API_BASE_URL}/cryptos/${id}/analysis`);
+  return response.data;
+};
+
+export const getCryptoQuant = async (id) => {
+  const response = await axios.get(`${API_BASE_URL}/cryptos/${id}/quant`);
   return response.data;
 };
 

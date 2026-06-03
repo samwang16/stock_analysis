@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import ReactApexChart from 'react-apexcharts';
-import { getCryptoKLine, getCryptoAnalysis } from '../api';
+import { getCryptoKLine, getCryptoAnalysis, getCryptoQuant } from '../api';
 
 const intervalOptions = [
   { value: '5m', label: '5分钟' },
@@ -22,6 +22,7 @@ const CryptoDetail = () => {
   const isDark = theme === 'dark';
   const [klineData, setKlineData] = useState([]);
   const [analysis, setAnalysis] = useState(null);
+  const [quantData, setQuantData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('cryptoFavorites');
@@ -36,12 +37,14 @@ const CryptoDetail = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [kline, analysisData] = await Promise.all([
+        const [kline, analysisData, quant] = await Promise.all([
           getCryptoKLine(id, selectedInterval),
-          getCryptoAnalysis(id)
+          getCryptoAnalysis(id),
+          getCryptoQuant(id)
         ]);
         setKlineData(kline);
         setAnalysis(analysisData);
+        setQuantData(quant);
       } catch (error) {
         console.error('Failed to fetch data', error);
       } finally {
@@ -193,6 +196,111 @@ const CryptoDetail = () => {
               <p className="font-bold text-lg text-orange-600 dark:text-orange-400">{analysis.recommendation}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {quantData && quantData.dimensions && quantData.dimensions.length > 0 && (
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mt-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">量化评分分析</h2>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-black" style={{ color: quantData.suggestionColor === 'green' ? '#22c55e' : quantData.suggestionColor === 'blue' ? '#3b82f6' : quantData.suggestionColor === 'red' ? '#ef4444' : '#f97316' }}>
+                {quantData.totalScore}
+              </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">/100</span>
+              <span className="px-3 py-1 rounded-full text-sm font-bold text-white" style={{ backgroundColor: quantData.suggestionColor === 'green' ? '#22c55e' : quantData.suggestionColor === 'blue' ? '#3b82f6' : quantData.suggestionColor === 'red' ? '#ef4444' : '#f97316' }}>
+                {quantData.suggestion}
+              </span>
+            </div>
+          </div>
+
+          {/* 评分进度条 */}
+          <div className="mb-6">
+            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 overflow-hidden">
+              <div 
+                className="h-4 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${quantData.totalScore}%`,
+                  backgroundColor: quantData.suggestionColor === 'green' ? '#22c55e' : quantData.suggestionColor === 'blue' ? '#3b82f6' : quantData.suggestionColor === 'red' ? '#ef4444' : '#f97316'
+                }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>0 不建议买入</span>
+              <span>40 观望</span>
+              <span>60 可以买入</span>
+              <span>80 强烈买入</span>
+              <span>100</span>
+            </div>
+          </div>
+
+          {/* 评分表 */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">分析维度</th>
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">权重</th>
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">得分</th>
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300 w-1/3">评分条</th>
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">分析说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quantData.dimensions.map((dim, idx) => (
+                  <tr key={idx} className="border-b border-gray-100 dark:border-gray-700/50">
+                    <td className="py-3 px-4 font-medium text-gray-800 dark:text-gray-200">{dim.name}</td>
+                    <td className="py-3 px-4 text-gray-500 dark:text-gray-400">{dim.weight}</td>
+                    <td className="py-3 px-4 font-bold text-gray-800 dark:text-gray-200">{dim.score}/{dim.maxScore}</td>
+                    <td className="py-3 px-4">
+                      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5">
+                        <div 
+                          className="h-2.5 rounded-full transition-all duration-500"
+                          style={{ 
+                            width: `${(dim.score / dim.maxScore) * 100}%`,
+                            backgroundColor: (dim.score / dim.maxScore) >= 0.7 ? '#22c55e' : (dim.score / dim.maxScore) >= 0.5 ? '#3b82f6' : (dim.score / dim.maxScore) >= 0.3 ? '#f97316' : '#ef4444'
+                          }}
+                        />
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{dim.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 技术指标详情 */}
+          {quantData.indicators && (
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h3 className="text-base font-bold text-gray-700 dark:text-gray-200 mb-4">技术指标详情</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {Object.entries(quantData.indicators).map(([key, value]) => {
+                  if (value === null || value === undefined) return null;
+                  const labelMap = {
+                    'MA5': 'MA5（5日均线）',
+                    'MA20': 'MA20（20日均线）',
+                    'MA60': 'MA60（60日均线）',
+                    'RSI': 'RSI（相对强弱）',
+                    'MACD_DIF': 'MACD DIF',
+                    'MACD_Hist': 'MACD 柱状',
+                    'Bollinger_Upper': '布林上轨',
+                    'Bollinger_Middle': '布林中轨',
+                    'Bollinger_Lower': '布林下轨',
+                    'ATR': 'ATR（真实波幅）',
+                    'Price_Position': '价格位置(%)'
+                  };
+                  const formatVal = key === 'Price_Position' ? `${value}%` : (key === 'RSI' ? value : `$${value}`);
+                  return (
+                    <div key={key} className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{labelMap[key] || key}</p>
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{formatVal}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
