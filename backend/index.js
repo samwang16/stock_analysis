@@ -151,6 +151,137 @@ app.get('/api/stocks/:id/analysis', async (req, res) => {
   }
 });
 
+// 初始关注的虚拟货币代码列表
+const followedCryptoSymbols = ['BTC-USD', 'ETH-USD', 'BNB-USD', 'SOL-USD'];
+
+// 获取虚拟货币列表
+app.get('/api/cryptos', async (req, res) => {
+  try {
+    let symbolsToFetch = [];
+    if (req.query.symbols) {
+      symbolsToFetch = req.query.symbols.split(',').map(s => s.trim().toUpperCase());
+    } else {
+      symbolsToFetch = [];
+    }
+
+    if (symbolsToFetch.length === 0) {
+      return res.json([]);
+    }
+
+    const results = await Promise.all(
+      symbolsToFetch.map(async (symbol) => {
+        try {
+          const quote = await yahooFinance.quote(symbol);
+          return {
+            id: symbol,
+            name: quote.shortName || quote.longName || symbol,
+            price: quote.regularMarketPrice || 0,
+            change: formatChange(quote.regularMarketChangePercent)
+          };
+        } catch (err) {
+          console.error(`Error fetching quote for ${symbol}:`, err);
+          return null;
+        }
+      })
+    );
+    res.json(results.filter(r => r !== null));
+  } catch (error) {
+    console.error('Error fetching cryptos:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// 获取某个虚拟货币的K线数据
+app.get('/api/cryptos/:id/kline', async (req, res) => {
+  const cryptoId = req.params.id.toUpperCase();
+  const validIntervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo'];
+  const interval = validIntervals.includes(req.query.interval) ? req.query.interval : '1d';
+  
+  try {
+    const period1 = new Date();
+    
+    if (['1m', '2m', '5m', '15m', '30m'].includes(interval)) {
+      period1.setDate(period1.getDate() - 1);
+    } else if (['60m', '90m', '1h'].includes(interval)) {
+      period1.setDate(period1.getDate() - 7);
+    } else if (interval === '1d') {
+      period1.setDate(period1.getDate() - 30);
+    } else if (interval === '1wk') {
+      period1.setMonth(period1.getMonth() - 3);
+    } else if (interval === '1mo') {
+      period1.setFullYear(period1.getFullYear() - 1);
+    }
+    
+    const period2 = new Date();
+
+    const queryOptions = { 
+      period1: period1.toISOString().split('T')[0],
+      period2: period2.toISOString().split('T')[0],
+      interval: interval
+    };
+    
+    const result = await yahooFinance.chart(cryptoId, queryOptions);
+    
+    const kLineData = result.quotes.map(item => ({
+      date: item.date.toISOString(),
+      open: parseFloat(item.open.toFixed(2)),
+      close: parseFloat(item.close.toFixed(2)),
+      high: parseFloat(item.high.toFixed(2)),
+      low: parseFloat(item.low.toFixed(2)),
+      volume: item.volume
+    }));
+    
+    res.json(kLineData);
+  } catch (error) {
+    console.error(`Error fetching K-line data for ${cryptoId}:`, error);
+    res.status(500).json({ message: 'Error fetching K-line data' });
+  }
+});
+
+// 获取某个虚拟货币的近期交易分析
+app.get('/api/cryptos/:id/analysis', async (req, res) => {
+  const cryptoId = req.params.id.toUpperCase();
+  
+  try {
+    const quote = await yahooFinance.quote(cryptoId);
+    
+    if (!quote) {
+      return res.status(404).json({ message: 'Crypto not found' });
+    }
+
+    const price = quote.regularMarketPrice;
+    const changePercent = quote.regularMarketChangePercent || 0;
+    
+    let trend = '震荡';
+    if (changePercent > 3) trend = '强势上涨';
+    else if (changePercent > 0) trend = '小幅上涨';
+    else if (changePercent < -3) trend = '大幅下跌';
+    else if (changePercent < 0) trend = '小幅下跌';
+
+    let recommendation = '观望';
+    if (trend === '强势上涨') recommendation = '可考虑追入';
+    else if (trend === '大幅下跌') recommendation = '谨慎抄底';
+    else if (trend === '小幅上涨') recommendation = '继续持有';
+
+    const analysis = {
+      cryptoId,
+      name: quote.shortName || quote.longName || cryptoId,
+      summary: `当前价格 $${price}，24h涨跌幅 ${formatChange(changePercent)}。${
+        quote.regularMarketVolume > quote.averageDailyVolume10Day ? '成交量较近期平均有所放大。' : '成交量平稳。'
+      }`,
+      trend,
+      supportLevel: parseFloat((price * 0.93).toFixed(2)),
+      resistanceLevel: parseFloat((price * 1.07).toFixed(2)),
+      recommendation
+    };
+
+    res.json(analysis);
+  } catch (error) {
+    console.error(`Error fetching analysis for ${cryptoId}:`, error);
+    res.status(500).json({ message: 'Error fetching crypto analysis' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
