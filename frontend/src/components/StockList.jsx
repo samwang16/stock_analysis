@@ -28,7 +28,6 @@ const StockList = () => {
     const fetchStocks = async () => {
       setLoading(true);
       try {
-        // 仅在有收藏股票时获取数据
         if (favorites.length > 0) {
           const data = await getStocks(favorites);
           setStocks(data);
@@ -44,7 +43,7 @@ const StockList = () => {
     fetchStocks();
   }, [favorites]);
 
-  if (loading) return <div className="text-center p-8">加载中...</div>;
+  if (loading) return <div className="text-center p-8 dark:text-gray-300">加载中...</div>;
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -55,7 +54,7 @@ const StockList = () => {
   };
 
   const toggleFavorite = (e, stockId) => {
-    e.preventDefault(); // 阻止 Link 跳转
+    e.preventDefault();
     setFavorites(prev => 
       prev.includes(stockId) 
         ? prev.filter(id => id !== stockId)
@@ -72,12 +71,12 @@ const StockList = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="输入股票代码"
-            className="flex-1 sm:flex-none border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 sm:flex-none border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             value={selectedMarket}
             onChange={(e) => setSelectedMarket(e.target.value)}
-            className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {marketOptions.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -93,20 +92,20 @@ const StockList = () => {
       </div>
       <div className="grid gap-4">
         {stocks.length === 0 ? (
-          <div className="text-center p-8 bg-white rounded-lg shadow-sm border border-gray-100">
-            <p className="text-gray-500">暂无收藏的股票，请在上方输入代码查询并收藏。</p>
+          <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+            <p className="text-gray-500 dark:text-gray-400">暂无收藏的股票，请在上方输入代码查询并收藏。</p>
           </div>
         ) : (
           stocks.map(stock => (
             <Link
               key={stock.id}
               to={`/stock/${stock.id}`}
-              className="block p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+              className="block p-6 bg-white dark:bg-slate-800 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700"
             >
               <div className="flex justify-between items-center">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-semibold text-gray-800">{stock.name}</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{stock.name}</h2>
                     <button
                       onClick={(e) => toggleFavorite(e, stock.id)}
                       className="focus:outline-none transition-transform hover:scale-110"
@@ -123,11 +122,11 @@ const StockList = () => {
                       </svg>
                     </button>
                   </div>
-                  <p className="text-sm text-gray-500">{stock.id}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{stock.id}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-bold text-gray-800">${stock.price.toFixed(2)}</p>
-                  <p className={`text-sm font-medium ${stock.change.startsWith('+') ? 'text-red-500' : 'text-green-500'}`}>
+                  <p className="text-xl font-bold text-gray-800 dark:text-gray-100">${stock.price.toFixed(2)}</p>
+                  <p className={`text-sm font-medium ${stock.change.startsWith('+') ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
                     {stock.change}
                   </p>
                 </div>

@@ -48,7 +48,7 @@ const CryptoList = () => {
     fetchCryptos();
   }, [favorites]);
 
-  if (loading) return <div className="text-center p-8">加载中...</div>;
+  if (loading) return <div className="text-center p-8 dark:text-gray-300">加载中...</div>;
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -83,7 +83,7 @@ const CryptoList = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="输入虚拟货币代码 (如 BTC)"
-            className="flex-1 sm:flex-none border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="flex-1 sm:flex-none border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
           <button
             type="submit"
@@ -95,8 +95,8 @@ const CryptoList = () => {
       </div>
 
       {/* 热门虚拟货币快捷添加 */}
-      <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-        <h3 className="text-sm font-medium text-gray-500 mb-3">热门虚拟货币</h3>
+      <div className="mb-6 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">热门虚拟货币</h3>
         <div className="flex flex-wrap gap-2">
           {popularCryptos.map(crypto => (
             <button
@@ -105,8 +105,8 @@ const CryptoList = () => {
               disabled={favorites.includes(crypto.symbol)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 favorites.includes(crypto.symbol)
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-orange-50 text-orange-600 hover:bg-orange-100 cursor-pointer'
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                  : 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50 cursor-pointer'
               }`}
             >
               {crypto.name}
@@ -117,20 +117,20 @@ const CryptoList = () => {
 
       <div className="grid gap-4">
         {cryptos.length === 0 ? (
-          <div className="text-center p-8 bg-white rounded-lg shadow-sm border border-gray-100">
-            <p className="text-gray-500">暂无收藏的虚拟货币，请在上方输入代码查询或点击热门货币添加。</p>
+          <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+            <p className="text-gray-500 dark:text-gray-400">暂无收藏的虚拟货币，请在上方输入代码查询或点击热门货币添加。</p>
           </div>
         ) : (
           cryptos.map(crypto => (
             <Link
               key={crypto.id}
               to={`/crypto/${crypto.id}`}
-              className="block p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+              className="block p-6 bg-white dark:bg-slate-800 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700"
             >
               <div className="flex justify-between items-center">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-semibold text-gray-800">{crypto.name}</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{crypto.name}</h2>
                     <button
                       onClick={(e) => toggleFavorite(e, crypto.id)}
                       className="focus:outline-none transition-transform hover:scale-110"
@@ -147,11 +147,11 @@ const CryptoList = () => {
                       </svg>
                     </button>
                   </div>
-                  <p className="text-sm text-gray-500">{crypto.id}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{crypto.id}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-bold text-gray-800">${crypto.price.toFixed(2)}</p>
-                  <p className={`text-sm font-medium ${crypto.change.startsWith('+') ? 'text-red-500' : 'text-green-500'}`}>
+                  <p className="text-xl font-bold text-gray-800 dark:text-gray-100">${crypto.price.toFixed(2)}</p>
+                  <p className={`text-sm font-medium ${crypto.change.startsWith('+') ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
                     {crypto.change}
                   </p>
                 </div>
