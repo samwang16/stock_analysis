@@ -61,16 +61,16 @@ app.get('/api/stocks', async (req, res) => {
 // 获取某只股票的K线数据
 app.get('/api/stocks/:id/kline', async (req, res) => {
   const stockId = req.params.id.toUpperCase();
-  const validIntervals = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1wk', '1mo'];
+  const validIntervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo'];
   const interval = validIntervals.includes(req.query.interval) ? req.query.interval : '1d';
   
   try {
     const period1 = new Date();
     
     // 根据时间粒度设置不同的时间范围
-    if (interval === '1m' || interval === '5m' || interval === '15m' || interval === '30m') {
+    if (['1m', '2m', '5m', '15m', '30m'].includes(interval)) {
       period1.setDate(period1.getDate() - 1); // 分钟级数据获取最近1天
-    } else if (interval === '1h' || interval === '4h') {
+    } else if (['60m', '90m', '1h'].includes(interval)) {
       period1.setDate(period1.getDate() - 7); // 小时级数据获取最近7天
     } else if (interval === '1d') {
       period1.setDate(period1.getDate() - 30); // 日线获取最近30天
@@ -88,9 +88,9 @@ app.get('/api/stocks/:id/kline', async (req, res) => {
       interval: interval
     };
     
-    const result = await yahooFinance.historical(stockId, queryOptions);
+    const result = await yahooFinance.chart(stockId, queryOptions);
     
-    const kLineData = result.map(item => ({
+    const kLineData = result.quotes.map(item => ({
       date: item.date.toISOString(),
       open: parseFloat(item.open.toFixed(2)),
       close: parseFloat(item.close.toFixed(2)),

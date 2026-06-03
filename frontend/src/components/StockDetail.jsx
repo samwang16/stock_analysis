@@ -3,9 +3,23 @@ import { useParams } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 import { getStockKLine, getStockAnalysis } from '../api';
 
-
+const intervalOptions = [
+  { value: '10s', label: '10秒' },
+  { value: '30s', label: '30秒' },
+  { value: '1m', label: '1分钟' },
+  { value: '3m', label: '3分钟' },
+  { value: '5m', label: '5分钟' },
+  { value: '15m', label: '15分钟' },
+  { value: '30m', label: '30分钟' },
+  { value: '1h', label: '1小时' },
+  { value: '4h', label: '4小时' },
+  { value: '1d', label: '1天' },
+  { value: '1wk', label: '1周' },
+  { value: '1mo', label: '1月' }
+];
 
 const StockDetail = () => {
+  const [selectedInterval, setSelectedInterval] = useState('1d');
   const { id } = useParams();
   const [klineData, setKlineData] = useState([]);
   const [analysis, setAnalysis] = useState(null);
@@ -21,9 +35,10 @@ const StockDetail = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [kline, analysisData] = await Promise.all([
-          getStockKLine(id),
+          getStockKLine(id, selectedInterval),
           getStockAnalysis(id)
         ]);
         setKlineData(kline);
@@ -35,7 +50,7 @@ const StockDetail = () => {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, selectedInterval]);
 
   if (loading) return <div className="text-center p-8">加载中...</div>;
 
@@ -106,6 +121,19 @@ const StockDetail = () => {
       )}
 
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+        <div className="flex justify-end mb-4">
+          <select 
+            value={selectedInterval}
+            onChange={(e) => setSelectedInterval(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            {intervalOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <ReactApexChart 
           options={chartOptions} 
           series={chartSeries} 
