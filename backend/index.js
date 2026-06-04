@@ -12,6 +12,20 @@ app.use(express.json());
 // 初始关注的股票代码列表
 const followedStockSymbols = ['AAPL', 'MSFT', 'TSLA', 'GOOGL'];
 
+// 带重试的 quote 调用（502/网关错误会多次重试，间隔递增）
+const quoteWithRetry = async (symbol, retries = 4) => {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await yahooFinance.quote(symbol);
+    } catch (err) {
+      if (i === retries) throw err;
+      const delay = 2000 * (i + 1); // 递增等待: 2s, 4s, 6s, 8s
+      console.warn(`quote retry ${i + 1}/${retries} for ${symbol}: ${err.message}, waiting ${delay}ms`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+};
+
 // 辅助函数：格式化涨跌幅
 const formatChange = (regularMarketChangePercent) => {
   if (regularMarketChangePercent === undefined || regularMarketChangePercent === null) return '0.00%';
@@ -37,7 +51,7 @@ app.get('/api/stocks', async (req, res) => {
     const results = await Promise.all(
       symbolsToFetch.map(async (symbol) => {
         try {
-          const quote = await yahooFinance.quote(symbol);
+          const quote = await quoteWithRetry(symbol);
           return {
             id: symbol,
             name: quote.shortName || quote.longName || symbol,
@@ -90,14 +104,16 @@ app.get('/api/stocks/:id/kline', async (req, res) => {
     
     const result = await yahooFinance.chart(stockId, queryOptions);
     
-    const kLineData = result.quotes.map(item => ({
-      date: item.date.toISOString(),
-      open: parseFloat(item.open.toFixed(2)),
-      close: parseFloat(item.close.toFixed(2)),
-      high: parseFloat(item.high.toFixed(2)),
-      low: parseFloat(item.low.toFixed(2)),
-      volume: item.volume
-    }));
+    const kLineData = result.quotes
+      .filter(item => item && item.date && item.open != null && item.close != null && item.high != null && item.low != null)
+      .map(item => ({
+        date: new Date(item.date).toISOString(),
+        open: parseFloat(item.open.toFixed(2)),
+        close: parseFloat(item.close.toFixed(2)),
+        high: parseFloat(item.high.toFixed(2)),
+        low: parseFloat(item.low.toFixed(2)),
+        volume: item.volume || 0
+      }));
     
     res.json(kLineData);
   } catch (error) {
@@ -111,16 +127,15 @@ app.get('/api/stocks/:id/analysis', async (req, res) => {
   const stockId = req.params.id.toUpperCase();
   
   try {
-    const quote = await yahooFinance.quote(stockId);
-    
+    const quote = await quoteWithRetry(stockId);
+
     if (!quote) {
       return res.status(404).json({ message: 'Stock not found' });
     }
 
     const price = quote.regularMarketPrice;
     const changePercent = quote.regularMarketChangePercent || 0;
-    
-    // 基于真实数据的简单分析逻辑
+
     let trend = '震荡';
     if (changePercent > 1.5) trend = '强势上涨';
     else if (changePercent > 0) trend = '小幅上涨';
@@ -171,7 +186,7 @@ app.get('/api/cryptos', async (req, res) => {
     const results = await Promise.all(
       symbolsToFetch.map(async (symbol) => {
         try {
-          const quote = await yahooFinance.quote(symbol);
+          const quote = await quoteWithRetry(symbol);
           return {
             id: symbol,
             name: quote.shortName || quote.longName || symbol,
@@ -222,14 +237,16 @@ app.get('/api/cryptos/:id/kline', async (req, res) => {
     
     const result = await yahooFinance.chart(cryptoId, queryOptions);
     
-    const kLineData = result.quotes.map(item => ({
-      date: item.date.toISOString(),
-      open: parseFloat(item.open.toFixed(2)),
-      close: parseFloat(item.close.toFixed(2)),
-      high: parseFloat(item.high.toFixed(2)),
-      low: parseFloat(item.low.toFixed(2)),
-      volume: item.volume
-    }));
+    const kLineData = result.quotes
+      .filter(item => item && item.date && item.open != null && item.close != null && item.high != null && item.low != null)
+      .map(item => ({
+        date: new Date(item.date).toISOString(),
+        open: parseFloat(item.open.toFixed(2)),
+        close: parseFloat(item.close.toFixed(2)),
+        high: parseFloat(item.high.toFixed(2)),
+        low: parseFloat(item.low.toFixed(2)),
+        volume: item.volume || 0
+      }));
     
     res.json(kLineData);
   } catch (error) {
@@ -243,7 +260,7 @@ app.get('/api/cryptos/:id/analysis', async (req, res) => {
   const cryptoId = req.params.id.toUpperCase();
   
   try {
-    const quote = await yahooFinance.quote(cryptoId);
+    const quote = await quoteWithRetry(cryptoId);
     
     if (!quote) {
       return res.status(404).json({ message: 'Crypto not found' });
